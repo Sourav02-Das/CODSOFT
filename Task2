@@ -1,0 +1,65 @@
+package com.sourav;
+
+
+import java.util.*;
+
+public class StudentGradeCalculator {
+	
+	public static void gradecalculator(int arr[])
+	{
+		//calculate the average marks
+		int total = 0;
+		for(int i = 0; i < arr.length; i++)
+		{
+			total += arr[i];
+		}
+		int result = total / arr.length;
+		
+		float percentage = (total / arr.length);
+		
+		System.out.println("Total Marks: " + total);
+		System.out.println("Percentage: " + percentage + "%");
+		
+		//convert 100 to 10 for switch case
+		int range = result / 10;
+		
+		//Enhanced Switch Case
+		//Grade Calculation
+		switch (range) {  // for results like 100
+        case 10, 9 -> System.out.println("O----->Outstanding");
+        case 8 -> System.out.println("E----->Excellent");
+        case 7 -> System.out.println("A----->Very Good");
+        case 6 -> System.out.println("B----->Good");
+        case 5 -> System.out.println("C----->Fair");
+        case 4 -> System.out.println("D----->Below Average");
+        default -> System.out.println("Fail");
+		}
+        
+}
+
+
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		//scanner class
+		
+		Scanner scanner = new Scanner(System.in);
+		System.out.println("please enter the number of subjects: ");
+		
+		//define the number of subjects
+		int a = scanner.nextInt();
+		int[] arr = new int[a];
+		
+		//input section
+		for(int i = 0; i < a; i++)
+		{
+			System.out.println("please enter the "+ (i + 1) +" subject number(out of 100): ");
+			int subjectMarks = scanner.nextInt();
+			arr[i] = subjectMarks;
+		}
+		gradecalculator(arr);
+
+	}
+
+}
+
