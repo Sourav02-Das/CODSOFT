@@ -1,0 +1,244 @@
+# interface
+
+package com.sourav;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.List;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+
+public class ATM_GUI {
+
+    private ATM atm;
+    private JTextArea historyTextArea;
+
+    public ATM_GUI(ATM atm) {
+        this.atm = atm;
+
+        JFrame frame = new JFrame("ATM Interface");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(600, 400); // Frame size 
+        frame.setLocationRelativeTo(null);
+
+        JPanel mPanel = new JPanel(new BorderLayout());
+        mPanel.setBackground(new Color(237, 237, 237));
+
+        JPanel bPanel = new JPanel(new GridLayout(4, 1, 5, 10)); // 4 rows
+        bPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        bPanel.setBackground(new Color(237, 237, 237));
+
+        //Buttons for the interface
+        JButton wButton = new JButton("Withdraw");
+        JButton dButton = new JButton("Deposit");
+        JButton balanceButton = new JButton("Check Balance");
+        JButton exitButton = new JButton("Exit");
+
+        //Set background color of buttons
+        wButton.setBackground(new Color(0, 0, 128));
+        dButton.setBackground(new Color(0, 0, 128));
+        balanceButton.setBackground(new Color(0, 0, 128));
+        exitButton.setBackground(new Color(0, 0, 128));
+
+        //Set text colors
+        wButton.setForeground(Color.WHITE);
+        dButton.setForeground(Color.WHITE);
+        balanceButton.setForeground(Color.WHITE);
+        exitButton.setForeground(Color.WHITE);
+
+        Font buttonFont = new Font("Times New Roman", Font.BOLD, 20);
+        wButton.setFont(buttonFont);
+        dButton.setFont(buttonFont);
+        balanceButton.setFont(buttonFont);
+        exitButton.setFont(buttonFont);
+
+        historyTextArea = new JTextArea(10, 30);
+        JScrollPane scrollPane = new JScrollPane(historyTextArea);
+        historyTextArea.setEditable(false);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+
+        bPanel.add(wButton);
+        bPanel.add(dButton);
+        bPanel.add(balanceButton);
+        bPanel.add(exitButton);
+
+        mPanel.add(bPanel, BorderLayout.WEST);
+        mPanel.add(scrollPane, BorderLayout.CENTER);
+
+        frame.add(mPanel);
+
+        wButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String amountString = JOptionPane.showInputDialog(frame, "Enter amount to withdraw:");
+                try {
+                    double amount = Double.parseDouble(amountString);
+                    boolean success = atm.withdraw(amount);
+                    if (success) {
+                        historyTextArea.append("Withdrawal successful. New balance: Rs" + atm.checkBalance() + "\n");
+                    } else {
+                        historyTextArea.append("Insufficient funds. Current balance: Rs" + atm.checkBalance() + "\n");
+                    }
+                    updateTransactionHistory();
+                } catch (NumberFormatException ex) {
+                    historyTextArea.append("Invalid input. Please enter a valid number.\n");
+                }
+            }
+        });
+
+        dButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String amountString = JOptionPane.showInputDialog(frame, "Enter amount to deposit:");
+                try {
+                    double amount = Double.parseDouble(amountString);
+                    atm.deposit(amount);
+                    historyTextArea.append("Deposit successful. New balance: Rs" + atm.checkBalance() + "\n");
+                    updateTransactionHistory();
+                } catch (NumberFormatException ex) {
+                    historyTextArea.append("Invalid input. Please enter a valid number.\n");
+                }
+            }
+        });
+
+        balanceButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                historyTextArea.append("Current balance: Rs" + atm.checkBalance() + "\n");
+            }
+        });
+
+        exitButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                int option = JOptionPane.showConfirmDialog(frame, "Are you sure you want to exit?", "Exit Confirmation", JOptionPane.YES_NO_OPTION);
+                if (option == JOptionPane.YES_OPTION) {
+                    System.exit(0);
+                }
+            }
+        });
+
+        frame.setVisible(true);
+    }
+
+    private void updateTransactionHistory() {
+        List<Transaction> transactions = atm.getTransactionHistory();
+        historyTextArea.setText("");
+        for (Transaction transaction : transactions) {
+            historyTextArea.append(transaction.getType() + ": Rs" + transaction.getAmount() + "\n");
+        }
+    }
+
+    public static void main(String[] args) {
+        BankAccount account = new BankAccount(100000);
+        ATM atm = new ATM(account);
+        new ATM_GUI(atm);
+    }
+}
+
+
+
+# ATM class
+
+package com.sourav;
+
+
+import java.util.ArrayList;
+import java.util.List;
+
+
+
+class ATM {
+    private BankAccount account;
+    private List<Transaction> transactionHistory;
+
+    public ATM(BankAccount account) {
+        this.account = account;
+        this.transactionHistory = new ArrayList<>();
+    }
+
+    public boolean withdraw(double amount) {
+        boolean success = account.withdraw(amount);
+        if (success) {
+            transactionHistory.add(new Transaction("Withdraw", amount));
+        }
+        return success;
+    }
+
+    public void deposit(double amount) {
+        account.deposit(amount);
+        transactionHistory.add(new Transaction("Deposit", amount));
+    }
+
+    public double checkBalance() {
+        return account.getBalance();
+    }
+
+
+
+    public List<Transaction> getTransactionHistory() {
+        return transactionHistory;
+    }
+}
+
+
+
+#Bank account
+
+
+package com.sourav;
+
+class BankAccount {
+    private double balance;
+
+    public BankAccount(double initialBalance) {
+        this.balance = initialBalance;
+    }
+
+    public double getBalance() {
+        return balance;
+    }
+
+    public void deposit(double amount) {
+        balance += amount;
+    }
+
+    public boolean withdraw(double amount) {
+        if (amount <= balance) {
+            balance -= amount;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+
+}
+
+
+#Transaction
+
+package com.sourav;
+
+class Transaction {
+    private String type;
+    private double amount;
+
+    public Transaction(String type, double amount) {
+        this.type = type;
+        this.amount = amount;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public double getAmount() {
+        return amount;
+    }
+}
